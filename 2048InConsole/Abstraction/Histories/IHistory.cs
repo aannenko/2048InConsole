@@ -10,8 +10,8 @@
 
         void AddItem(T item);
 
-        void Undo();
+        bool Undo();
 
-        void Redo();
+        bool Redo();
     }
 }

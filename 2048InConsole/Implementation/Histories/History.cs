@@ -54,16 +54,18 @@ namespace _2048Unlimited.Model.Implementation.Histories
             _previousItems.Push(item);
         }
 
-        public void Undo()
+        public bool Undo()
         {
-            if (!IsUndoAvailable) return;
+            if (!IsUndoAvailable) return false;
             _nextItems.Push(_previousItems.Pop());
+            return true;
         }
 
-        public void Redo()
+        public bool Redo()
         {
-            if (!IsRedoAvailable) return;
+            if (!IsRedoAvailable) return false;
             _previousItems.Push(_nextItems.Pop());
+            return true;
         }
     }
 }

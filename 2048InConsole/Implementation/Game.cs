@@ -20,7 +20,7 @@ namespace _2048Unlimited.Model.Implementation
 
         private readonly IHistory<GameStep> _history;
         private readonly ITimer _timer;
-        private readonly IStatisticsInternal _globalStatistics;
+        private readonly IGlobalStatistics _globalStatistics;
 
         public IReadOnlyDictionary<Position, ITile> Tiles => _history.CurrentItem.Board.Items;
 
@@ -32,7 +32,7 @@ namespace _2048Unlimited.Model.Implementation
 
         public IStatistics Statistics => _history.CurrentItem.Statistics;
 
-        internal Game(IHistory<GameStep> history, ITimer timer, IStatisticsInternal globalStatistics)
+        internal Game(IHistory<GameStep> history, ITimer timer, IGlobalStatistics globalStatistics)
         {
             if (history == null)
                 throw new ArgumentNullException(nameof(history), NullHistoryMessage);
@@ -48,14 +48,14 @@ namespace _2048Unlimited.Model.Implementation
             _globalStatistics = globalStatistics;
         }
 
-        public void Move(Direction direction)
+        public bool Move(Direction direction)
         {
             IMovingBoard<ITile> newBoard;
-            if (!_history.CurrentItem.Board.TryMove(direction, out newBoard)) return;
+            if (!_history.CurrentItem.Board.TryMove(direction, out newBoard)) return false;
 
             double newScore = 0;
-            TimeSpan newElapsedTime = TimeSpan.Zero;
-            int bestTileRank = 0;
+            var newElapsedTime = TimeSpan.Zero;
+            var bestTileRank = 0;
             Parallel.Invoke(
                 () => newScore = Statistics.Score + newBoard.Items.Values.Where(i => i.MergedWith.HasValue).Sum(i => i.Rank),
                 () => newElapsedTime = _timer.ElapsedTime,
@@ -63,19 +63,23 @@ namespace _2048Unlimited.Model.Implementation
 
             var newStatistics = _history.CurrentItem.Statistics.Update(newScore, newElapsedTime, bestTileRank);
             _history.AddItem(new GameStep(newBoard, newStatistics));
-            _globalStatistics.Update(newScore, newElapsedTime, bestTileRank);
+            _globalStatistics.Update(newScore, newElapsedTime, newStatistics.BestTileStatistics);
+
+            return true;
         }
 
-        public void Undo()
+        public bool Undo()
         {
-            _history.Undo();
+            if (!_history.Undo()) return false;
             _timer.SetElapsedTime(_history.CurrentItem.Statistics.ElapsedTime);
+            return true;
         }
 
-        public void Redo()
+        public bool Redo()
         {
-            _history.Redo();
+            if (!_history.Redo()) return false;
             _timer.SetElapsedTime(_history.CurrentItem.Statistics.ElapsedTime);
+            return true;
         }
 
         public event EventHandler<TimerTickEventArgs> Tick

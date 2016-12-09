@@ -44,7 +44,7 @@ namespace _2048Unlimited.Model.Implementation.Boards
             if (!_mover.TryMove(this, direction, out newTiles)) return false;
 
             var board = new TilesBoard(newTiles, Columns, Rows);
-            Task.Factory.StartNew(() => board.IsMoveAvailable = _mover.GetIsMoveAvailable(this));
+            Task.Factory.StartNew(() => board.IsMoveAvailable = _mover.GetIsMoveAvailable(board));
             newBoard = board;
 
             return true;

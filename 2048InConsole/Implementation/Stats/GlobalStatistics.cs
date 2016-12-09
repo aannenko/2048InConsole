@@ -5,24 +5,24 @@ using _2048Unlimited.Model.Abstraction.Stats;
 namespace _2048Unlimited.Model.Implementation.Stats
 {
     [DataContract]
-    internal class GlobalStatistics : Statistics, IStatisticsInternal
+    internal class GlobalStatistics : Statistics, IGlobalStatistics
     {
         [DataMember(IsRequired = true)]
         private TimeSpan _previousElapsedTime = TimeSpan.Zero;
 
-        public IStatisticsInternal Update(double newScore, TimeSpan newElapsedTime, int bestTileRank)
+        public void Update(double newScore, TimeSpan newElapsedTime, ITileStatistics bestTile)
         {
             var newMoves = Moves < double.MaxValue ? Moves + 1 : double.MaxValue;
 
             Score = Score < newScore ? newScore : Score;
             Moves = newMoves;
+
+            if (newElapsedTime < _previousElapsedTime)
+                _previousElapsedTime = TimeSpan.Zero;
             ElapsedTime = ElapsedTime + (newElapsedTime - _previousElapsedTime);
             _previousElapsedTime = newElapsedTime;
 
-            if (bestTileRank >= MinTileRankForDictionaries && TryUpdateTimesDictionary(bestTileRank, newElapsedTime))
-                TryUpdateMovesDictionary(bestTileRank, newMoves);
-
-            return this;
+            TryUpdateTilesStatistics(bestTile);
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using _2048Unlimited.Model.Abstraction;
 using _2048Unlimited.Model.Abstraction.Stats;
 using _2048Unlimited.Model.Abstraction.Tiles;
@@ -18,16 +17,16 @@ namespace _2048InConsole
         private const byte Columns = 4;
         private const byte Rows = 4;
 
-        private static readonly int LineSize = Columns*ColumnSize;
         private static readonly object Locker = new object();
-        private static readonly IStatisticsInternal GlobalStats = new GlobalStatistics();
+        private static readonly ConsoleDrawer Drawer = new ConsoleDrawer(Columns*ColumnSize);
+        private static readonly IGlobalStatistics GlobalStats = new GlobalStatistics();
 
         private static IGame _game;
 
         private static void Main()
         {
             _game = GetNewGame();
-            _game.Tick += Game_Tick;
+            //_game.Tick += Game_Tick; // uncomment if you want a real elapsed time; flickering may appear
 
             while (true)
             {
@@ -36,15 +35,19 @@ namespace _2048InConsole
                 switch (key.Key)
                 {
                     case ConsoleKey.LeftArrow:
+                    case ConsoleKey.A:
                         _game.Move(Direction.Left);
                         break;
                     case ConsoleKey.UpArrow:
+                    case ConsoleKey.W:
                         _game.Move(Direction.Up);
                         break;
                     case ConsoleKey.RightArrow:
+                    case ConsoleKey.D:
                         _game.Move(Direction.Right);
                         break;
                     case ConsoleKey.DownArrow:
+                    case ConsoleKey.S:
                         _game.Move(Direction.Down);
                         break;
                     case ConsoleKey.Q:
@@ -54,17 +57,13 @@ namespace _2048InConsole
                         _game.Redo();
                         break;
                     case ConsoleKey.N:
-                        _game.Tick -= Game_Tick;
+                    case ConsoleKey.Spacebar:
+                        //_game.Tick -= Game_Tick; // uncomment if you want a real elapsed time
                         _game = GetNewGame();
-                        _game.Tick += Game_Tick;
+                        //_game.Tick += Game_Tick; // uncomment if you want a real elapsed time
                         break;
                 }
             }
-        }
-
-        private static void Game_Tick(object sender, TimerTickEventArgs e)
-        {
-            DrawGame(e.ElapsedTime);
         }
 
         private static IGame GetNewGame()
@@ -92,103 +91,68 @@ namespace _2048InConsole
             lock (Locker)
             {
                 Console.Clear();
+                DrawHeader();
+                DrawGameField();
+                DrawTime(elapsedTime);
                 Console.WriteLine();
-                FillLineWithBlocks("2048");
-                FillLineWithBlocks(" ");
-                FillLineWithBlocks("Score", "Best");
-                FillLineWithBlocks(_game.Statistics.Score.ToString(), GlobalStats.Score.ToString());
-                Console.WriteLine();
-                FillLineWith("========");
-                for (int i = 0; i < Rows; i++)
-                {
-                    FillLineWith("|      |");
-                    for (int j = 0; j < Columns; j++)
-                    {
-                        var position = new Position(j, i);
-                        ITile tile;
-                        Console.Write(_game.Tiles.TryGetValue(position, out tile) ? GetStringBlock(tile.Rank.ToString(), ColumnSize) : "|      |");
-                    }
-
-                    Console.WriteLine();
-                    FillLineWith("|      |");
-                    FillLineWith("========");
-                }
-
-                Console.WriteLine();
-                FillLineWithBlocks($"{_game.Statistics.Moves} moves", elapsedTime.ToString("g"));
-                Console.WriteLine();
-                FillLineWithBlocks("Local statistics");
+                Drawer.FillLineWithBlocks("Local statistics");
                 DrawStatistics(_game.Statistics);
                 Console.WriteLine();
-                FillLineWithBlocks("Global statistics");
+                Drawer.FillLineWithBlocks("Global statistics");
                 DrawStatistics(GlobalStats);
             }
         }
 
+        private static void DrawHeader()
+        {
+            Console.WriteLine();
+            Drawer.FillLineWithBlocks("2048");
+        }
+
+        private static void DrawGameField()
+        {
+            Console.WriteLine();
+            Drawer.FillLine("========");
+            for (int i = 0; i < Rows; i++)
+            {
+                Drawer.FillLine(Drawer.GetStringBlock(" ", ColumnSize));
+                for (int j = 0; j < Columns; j++)
+                {
+                    var position = new Position(j, i);
+                    ITile tile;
+                    Console.Write(_game.Tiles.TryGetValue(position, out tile)
+                        ? Drawer.GetStringBlock(tile.Rank.ToString(), ColumnSize)
+                        : Drawer.GetStringBlock(" ", ColumnSize));
+                }
+
+                Console.WriteLine();
+                Drawer.FillLine(Drawer.GetStringBlock(" ", ColumnSize));
+                Drawer.FillLine("========");
+            }
+        }
+
+        private static void DrawTime(TimeSpan elapsedTime)
+        {
+            Console.WriteLine();
+            Drawer.FillLineWithBlocks(elapsedTime.ToString("g"));
+        }
+
         private static void DrawStatistics(IStatistics stats)
         {
-            FillLineWithBlocks(" ");
-            FillLineWithBlocks("Score", stats.Score.ToString());
-            FillLineWithBlocks("Moves", stats.Moves.ToString());
-            FillLineWithBlocks("Elapsed", stats.ElapsedTime.ToString());
+            Drawer.FillLineWithBlocks(" ");
+            Drawer.FillLineWithBlocks("Score", stats.Score.ToString());
+            Drawer.FillLineWithBlocks("Moves", stats.Moves.ToString());
+            Drawer.FillLineWithBlocks("Elapsed", stats.ElapsedTime.ToString());
 
-            FillLineWithBlocks(" ");
-            FillLineWithBlocks("Tile", "Moves");
-            foreach (var pair in stats.MovesToTileDictionary)
-                FillLineWithBlocks(pair.Key.ToString(), pair.Value.ToString());
-
-            FillLineWithBlocks(" ");
-            FillLineWithBlocks("Tile", "Time");
-            foreach (var pair in stats.TimeToTileDictionary)
-                FillLineWithBlocks(pair.Key.ToString(), pair.Value.ToString());
+            Drawer.FillLineWithBlocks(" ");
+            Drawer.FillLineWithBlocks("Tile", "Moves", "Time");
+            foreach (var pair in stats.TilesStatistics)
+                Drawer.FillLineWithBlocks(pair.Key.ToString(), pair.Value.Moves.ToString(), pair.Value.Time.ToString());
         }
 
-        private static void FillLineWith(string content)
+        private static void Game_Tick(object sender, TimerTickEventArgs e)
         {
-            var builder = new StringBuilder(content);
-            while (builder.Length < LineSize)
-                builder.Append(content);
-
-            if (builder.Length > LineSize)
-                builder.Remove(LineSize, builder.Length - LineSize);
-
-            Console.Write(builder);
-            Console.WriteLine();
-        }
-
-        private static void FillLineWithBlocks(params string[] content)
-        {
-            var blockLenght = LineSize/content.Length;
-            var remainder = LineSize%content.Length;
-            var builder = new StringBuilder();
-            foreach (var block in content)
-            {
-                builder.Append(GetStringBlock(block, blockLenght));
-                if (remainder < 1) continue;
-                builder.Append(" ");
-                remainder--;
-            }
-
-            Console.Write(builder);
-            Console.WriteLine();
-        }
-
-        private static string GetStringBlock(string content, int blockLenght)
-        {
-            if (content.Length > blockLenght - 2)
-                content = content.Remove(content.Length - 2);
-
-            var builder = new StringBuilder("|");
-            var full = blockLenght - 2 - content.Length;
-            var secondPart = full / 2;
-            var firstPart = full - secondPart;
-
-            builder.Append(new string(' ', firstPart));
-            builder.Append(content);
-            builder.Append(new string(' ', secondPart));
-            builder.Append("|");
-
-            return builder.ToString();
+            DrawGame(e.ElapsedTime);
         }
     }
 }

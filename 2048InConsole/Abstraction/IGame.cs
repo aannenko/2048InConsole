@@ -18,11 +18,11 @@ namespace _2048Unlimited.Model.Abstraction
 
         IStatistics Statistics { get; }
 
-        void Move(Direction direction);
+        bool Move(Direction direction);
 
-        void Undo();
+        bool Undo();
 
-        void Redo();
+        bool Redo();
 
         event EventHandler<TimerTickEventArgs> Tick;
     }

@@ -51,10 +51,13 @@
     <Compile Include="Abstraction\Boards\IMovingBoard.cs" />
     <Compile Include="Abstraction\Histories\IHistory.cs" />
     <Compile Include="Abstraction\IGame.cs" />
+    <Compile Include="Abstraction\Stats\ITileStatistics.cs" />
+    <Compile Include="Abstraction\Stats\IGlobalStatistics.cs" />
     <Compile Include="Abstraction\Stats\IStatistics.cs" />
-    <Compile Include="Abstraction\Stats\IStatisticsInternal.cs" />
+    <Compile Include="Abstraction\Stats\ILocalStatistics.cs" />
     <Compile Include="Abstraction\Tiles\ITile.cs" />
     <Compile Include="Abstraction\Timers\ITimer.cs" />
+    <Compile Include="ConsoleDrawer.cs" />
     <Compile Include="Helpers\Comparers\PositionComparer.cs" />
     <Compile Include="Helpers\Comparers\PositionComparerFactory.cs" />
     <Compile Include="Helpers\Comparers\PositionComparerForMoveDown.cs" />
@@ -73,6 +76,7 @@
     <Compile Include="Implementation\Stats\GlobalStatistics.cs" />
     <Compile Include="Implementation\Stats\LocalStatistics.cs" />
     <Compile Include="Implementation\Stats\Statistics.cs" />
+    <Compile Include="Implementation\Stats\TileStatistics.cs" />
     <Compile Include="Implementation\Tiles\Tile.cs" />
     <Compile Include="Implementation\Timers\ElapsingTimer.cs" />
     <Compile Include="Program.cs" />

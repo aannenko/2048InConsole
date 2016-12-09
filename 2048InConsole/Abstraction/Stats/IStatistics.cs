@@ -11,8 +11,6 @@ namespace _2048Unlimited.Model.Abstraction.Stats
 
         TimeSpan ElapsedTime { get; }
 
-        IReadOnlyDictionary<int, TimeSpan> TimeToTileDictionary { get; }
-
-        IReadOnlyDictionary<int, double> MovesToTileDictionary { get; }
+        IReadOnlyDictionary<int, ITileStatistics> TilesStatistics { get; }
     }
 }

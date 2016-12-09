@@ -16,16 +16,16 @@ namespace _2048Unlimited.Model.Implementation
         public IMovingBoard<ITile> Board { get; }
 
         [DataMember(IsRequired = true)]
-        public IStatisticsInternal Statistics { get; }
+        public ILocalStatistics Statistics { get; }
 
-        internal GameStep(IMovingBoard<ITile> board, IStatisticsInternal statistics)
+        internal GameStep(IMovingBoard<ITile> board, ILocalStatistics statistics)
         {
             ValidateParameters(board, statistics);
             Board = board;
             Statistics = statistics;
         }
 
-        private void ValidateParameters(IMovingBoard<ITile> board, IStatisticsInternal statistics)
+        private void ValidateParameters(IMovingBoard<ITile> board, ILocalStatistics statistics)
         {
             if (board == null)
                 throw new ArgumentNullException(nameof(board), NullBoardMessage);
