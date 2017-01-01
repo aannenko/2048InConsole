@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using _2048Unlimited.Model.Abstraction;
 using _2048Unlimited.Model.Abstraction.Stats;
 using _2048Unlimited.Model.Abstraction.Tiles;
@@ -70,16 +71,18 @@ namespace _2048InConsole
         {
             return new Game(
                 new History<GameStep>(
-                    new GameStep(
-                        new TilesBoard(
-                            Columns,
-                            Rows,
-                            new TilesMover(
-                                new TilesCollider()
-                            )
-                        ),
-                        new LocalStatistics()
-                    )
+                    new List<GameStep> { 
+                        new GameStep(
+                            new TilesBoard(
+                                Columns,
+                                Rows,
+                                new TilesMover(
+                                    new TilesCollider()
+                                )
+                            ),
+                            new LocalStatistics()
+                        )
+                    }
                 ),
                 new ElapsingTimer(),
                 GlobalStats

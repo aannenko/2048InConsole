@@ -27,7 +27,9 @@ namespace _2048Unlimited.Model.Implementation.Boards
         public TilesBoard(byte columns, byte rows, IBoardItemsMover<ITile> mover)
             : this(null, columns, rows)
         {
-            ValidateInput(mover);
+            if (mover == null)
+                throw new ArgumentNullException(nameof(mover), MoverNullMessage);
+
             _mover = mover;
         }
 
@@ -92,12 +94,6 @@ namespace _2048Unlimited.Model.Implementation.Boards
             });
 
             return positions.ToArray();
-        }
-
-        private void ValidateInput(IBoardItemsMover<ITile> mover)
-        {
-            if (mover == null)
-                throw new ArgumentNullException(nameof(mover), MoverNullMessage);
         }
     }
 }

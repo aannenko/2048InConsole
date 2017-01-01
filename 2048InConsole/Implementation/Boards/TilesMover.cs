@@ -18,7 +18,9 @@ namespace _2048Unlimited.Model.Implementation.Boards
 
         internal TilesMover(IBoardItemsCollider<ITile> collider)
         {
-            ValidateInput(collider);
+            if (collider == null)
+                throw new ArgumentNullException(nameof(collider), ColliderNullMessage);
+
             _collider = collider;
         }
 
@@ -104,12 +106,6 @@ namespace _2048Unlimited.Model.Implementation.Boards
             });
 
             return lines;
-        }
-
-        private void ValidateInput(IBoardItemsCollider<ITile> collider)
-        {
-            if (collider == null)
-                throw new ArgumentNullException(nameof(collider), ColliderNullMessage);
         }
     }
 }

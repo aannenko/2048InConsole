@@ -18,34 +18,23 @@ namespace _2048Unlimited.Model.Implementation.Histories
         [DataMember(IsRequired = true)]
         private readonly Stack<T> _nextItems;
 
-        internal History(T item)
-        {
-            _previousItems = new Stack<T>();
-            _previousItems.Push(item);
-            _nextItems = new Stack<T>();
-        }
+        public T CurrentItem => _previousItems.Peek();
+
+        public bool IsUndoAvailable => _previousItems.Count > 1;
+
+        public bool IsRedoAvailable => _nextItems.Any();
 
         internal History(IEnumerable<T> items)
-        {
-            ValidateInput(items);
-            _previousItems = new Stack<T>(items);
-            _nextItems = new Stack<T>();
-        }
-
-        private void ValidateInput(IEnumerable<T> items)
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items), NullInitialItemsMessage);
 
             if (!items.Any())
                 throw new ArgumentException(EmptyInitialItemsMessage, nameof(items));
+
+            _previousItems = new Stack<T>(items);
+            _nextItems = new Stack<T>();
         }
-
-        public T CurrentItem => _previousItems.Peek();
-
-        public bool IsUndoAvailable => _previousItems.Count > 1;
-
-        public bool IsRedoAvailable => _nextItems.Any();
 
         public void AddItem(T item)
         {
