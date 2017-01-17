@@ -34,14 +34,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Abstraction\Boards\Board.cs" />
@@ -58,6 +53,7 @@
     <Compile Include="Abstraction\Tiles\ITile.cs" />
     <Compile Include="Abstraction\Timers\ITimer.cs" />
     <Compile Include="ConsoleDrawer.cs" />
+    <Compile Include="GameSettings.cs" />
     <Compile Include="Helpers\Comparers\PositionComparer.cs" />
     <Compile Include="Helpers\Comparers\PositionComparerFactory.cs" />
     <Compile Include="Helpers\Comparers\PositionComparerForMoveDown.cs" />

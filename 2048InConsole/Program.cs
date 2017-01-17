@@ -14,12 +14,10 @@ namespace _2048InConsole
 {
     internal class Program
     {
-        private const byte ColumnSize = 8;
-        private const byte Columns = 4;
-        private const byte Rows = 4;
+        private static readonly GameSettings Settings = new GameSettings();
 
         private static readonly object Locker = new object();
-        private static readonly ConsoleDrawer Drawer = new ConsoleDrawer(Columns*ColumnSize);
+        private static readonly ConsoleDrawer Drawer = new ConsoleDrawer(Settings.Columns*Settings.ColumnSize);
         private static readonly IGlobalStatistics GlobalStats = new GlobalStatistics();
 
         private static IGame _game;
@@ -27,7 +25,7 @@ namespace _2048InConsole
         private static void Main()
         {
             _game = GetNewGame();
-            //_game.Tick += Game_Tick; // uncomment if you want a real elapsed time; flickering may appear
+            if (Settings.DynamicElapsedTime) _game.Tick += Game_Tick;
 
             while (true)
             {
@@ -59,9 +57,9 @@ namespace _2048InConsole
                         break;
                     case ConsoleKey.N:
                     case ConsoleKey.Spacebar:
-                        //_game.Tick -= Game_Tick; // uncomment if you want a real elapsed time
+                        if (Settings.DynamicElapsedTime) _game.Tick -= Game_Tick;
                         _game = GetNewGame();
-                        //_game.Tick += Game_Tick; // uncomment if you want a real elapsed time
+                        if (Settings.DynamicElapsedTime) _game.Tick += Game_Tick;
                         break;
                 }
             }
@@ -74,8 +72,8 @@ namespace _2048InConsole
                     new List<GameStep> { 
                         new GameStep(
                             new TilesBoard(
-                                Columns,
-                                Rows,
+                                Settings.Columns,
+                                Settings.Rows,
                                 new TilesMover(
                                     new TilesCollider()
                                 )
@@ -116,20 +114,20 @@ namespace _2048InConsole
         {
             Console.WriteLine();
             Drawer.FillLine("========");
-            for (int i = 0; i < Rows; i++)
+            for (int i = 0; i < Settings.Rows; i++)
             {
-                Drawer.FillLine(Drawer.GetStringBlock(" ", ColumnSize));
-                for (int j = 0; j < Columns; j++)
+                Drawer.FillLine(Drawer.GetStringBlock(" ", Settings.ColumnSize));
+                for (int j = 0; j < Settings.Columns; j++)
                 {
                     var position = new Position(j, i);
                     ITile tile;
                     Console.Write(_game.Tiles.TryGetValue(position, out tile)
-                        ? Drawer.GetStringBlock(tile.Rank.ToString(), ColumnSize)
-                        : Drawer.GetStringBlock(" ", ColumnSize));
+                        ? Drawer.GetStringBlock(tile.Rank.ToString(), Settings.ColumnSize)
+                        : Drawer.GetStringBlock(" ", Settings.ColumnSize));
                 }
 
                 Console.WriteLine();
-                Drawer.FillLine(Drawer.GetStringBlock(" ", ColumnSize));
+                Drawer.FillLine(Drawer.GetStringBlock(" ", Settings.ColumnSize));
                 Drawer.FillLine("========");
             }
         }
