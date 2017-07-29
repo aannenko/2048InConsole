@@ -1,75 +1,108 @@
-﻿using System;
+﻿using _2048InConsole.Boards;
+using _2048InConsole.Games;
+using _2048InConsole.Helpers;
+using _2048InConsole.Histories;
+using _2048InConsole.Saves;
+using _2048InConsole.Stats;
+using _2048InConsole.Tiles;
+using _2048InConsole.Timers;
+using System;
 using System.Collections.Generic;
-using _2048Unlimited.Model.Abstraction;
-using _2048Unlimited.Model.Abstraction.Stats;
-using _2048Unlimited.Model.Abstraction.Tiles;
-using _2048Unlimited.Model.Helpers;
-using _2048Unlimited.Model.Implementation;
-using _2048Unlimited.Model.Implementation.Boards;
-using _2048Unlimited.Model.Implementation.Histories;
-using _2048Unlimited.Model.Implementation.Stats;
-using _2048Unlimited.Model.Implementation.Timers;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Reflection;
 
 namespace _2048InConsole
 {
     internal class Program
     {
+        private static readonly string SaveFilePath = Path.Combine(
+            Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath),
+            "2048ultimate.sav");
+
+        private static readonly Type[] KnownTypes =
+        {
+            typeof(Game),
+            typeof(History<GameStep>),
+            typeof(GameStep),
+            typeof(TilesBoard),
+            typeof(Board<Tile>),
+            typeof(Tile),
+            typeof(TilesMover),
+            typeof(TilesCollider),
+            typeof(Statistics),
+            typeof(GlobalStatistics),
+            typeof(LocalStatistics),
+            typeof(TileStatistics),
+            typeof(ReadOnlyDictionary<int, ITileStatistics>),
+            typeof(ReadOnlyDictionary<Position, ITile>),
+            typeof(ElapsingTimer)
+        };
+
         private static readonly GameSettings Settings = new GameSettings();
+        private static readonly ISavesManager<IGame> GameSaver = new SavesManager<IGame>();
 
         private static readonly object Locker = new object();
         private static readonly ConsoleDrawer Drawer = new ConsoleDrawer(Settings.Columns*Settings.ColumnSize);
-        private static readonly IGlobalStatistics GlobalStats = new GlobalStatistics();
 
         private static IGame _game;
 
         private static void Main()
         {
-            _game = GetNewGame();
+            _game = GetGame();
             if (Settings.DynamicElapsedTime) _game.Tick += Game_Tick;
 
+            bool isMoveMade = true;
             while (true)
             {
-                DrawGame(_game.Statistics.ElapsedTime);
+                if (isMoveMade) DrawGame(_game.Statistics.ElapsedTime);
+
                 var key = Console.ReadKey();
                 switch (key.Key)
                 {
                     case ConsoleKey.LeftArrow:
                     case ConsoleKey.A:
-                        _game.Move(Direction.Left);
+                        isMoveMade = _game.Move(Direction.Left);
                         break;
                     case ConsoleKey.UpArrow:
                     case ConsoleKey.W:
-                        _game.Move(Direction.Up);
+                        isMoveMade = _game.Move(Direction.Up);
                         break;
                     case ConsoleKey.RightArrow:
                     case ConsoleKey.D:
-                        _game.Move(Direction.Right);
+                        isMoveMade = _game.Move(Direction.Right);
                         break;
                     case ConsoleKey.DownArrow:
                     case ConsoleKey.S:
-                        _game.Move(Direction.Down);
+                        isMoveMade = _game.Move(Direction.Down);
                         break;
                     case ConsoleKey.Q:
-                        _game.Undo();
+                        isMoveMade = _game.Undo();
                         break;
                     case ConsoleKey.E:
-                        _game.Redo();
+                        isMoveMade = _game.Redo();
                         break;
                     case ConsoleKey.N:
                     case ConsoleKey.Spacebar:
                         if (Settings.DynamicElapsedTime) _game.Tick -= Game_Tick;
-                        _game = GetNewGame();
+                        _game = GetGame();
                         if (Settings.DynamicElapsedTime) _game.Tick += Game_Tick;
+                        isMoveMade = true;
                         break;
+                    case ConsoleKey.Z:
+                        SaveGame();
+                        return;
                 }
             }
         }
 
-        private static IGame GetNewGame()
+        private static IGame GetGame()
         {
-            return new Game(
+            GameSaver.TryLoad(SaveFilePath, KnownTypes, out IGame game);
+
+            return game ?? new Game(
                 new History<GameStep>(
-                    new List<GameStep> { 
+                    new List<GameStep> {
                         new GameStep(
                             new TilesBoard(
                                 Settings.Columns,
@@ -83,8 +116,13 @@ namespace _2048InConsole
                     }
                 ),
                 new ElapsingTimer(),
-                GlobalStats
+                new GlobalStatistics()
             );
+        }
+
+        private static void SaveGame()
+        {
+            GameSaver.TrySave(SaveFilePath, _game, KnownTypes);
         }
 
         private static void DrawGame(TimeSpan elapsedTime)
@@ -100,7 +138,7 @@ namespace _2048InConsole
                 DrawStatistics(_game.Statistics);
                 Console.WriteLine();
                 Drawer.FillLineWithBlocks("Global statistics");
-                DrawStatistics(GlobalStats);
+                DrawStatistics(_game.GlobalStatistics);
             }
         }
 

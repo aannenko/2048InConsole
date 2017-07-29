@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace _2048Unlimited.Model.Helpers
+namespace _2048InConsole.Helpers
 {
     [DataContract]
     public struct Position

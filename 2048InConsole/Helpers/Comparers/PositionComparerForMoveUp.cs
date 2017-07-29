@@ -1,4 +1,4 @@
-﻿namespace _2048Unlimited.Model.Helpers.Comparers
+﻿namespace _2048InConsole.Helpers.Comparers
 {
     internal class PositionComparerForMoveUp : PositionComparer
     {

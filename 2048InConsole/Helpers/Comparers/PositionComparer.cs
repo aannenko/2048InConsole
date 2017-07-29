@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace _2048Unlimited.Model.Helpers.Comparers
+namespace _2048InConsole.Helpers.Comparers
 {
     internal abstract class PositionComparer : Comparer<Position>
     {

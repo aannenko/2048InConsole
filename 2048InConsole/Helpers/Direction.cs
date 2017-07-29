@@ -1,4 +1,4 @@
-﻿namespace _2048Unlimited.Model.Helpers
+﻿namespace _2048InConsole.Helpers
 {
     /// <summary>
     /// DO NOT CHANGE UNDER ANY CIRCUMSTANCES!!!

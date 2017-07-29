@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace _2048Unlimited.Model.Helpers
+namespace _2048InConsole.Helpers
 {
     public class TimerTickEventArgs : EventArgs
     {
